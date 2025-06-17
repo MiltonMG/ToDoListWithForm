@@ -23,6 +23,14 @@ function App() {
       )
     );
   };
+  const handleClearList = () => {
+    const confitm = window.confirm(
+      "Are you sure you want to clear the list? This action cannot be undone."
+    );
+    if (!confitm) return;
+    console.log("Clearing list...");
+    setItems([]);
+  };
 
   return (
     <div className="app">
@@ -32,6 +40,7 @@ function App() {
         items={items}
         onDeleteItem={handleDeleteItem}
         onTogglePacked={handleTogglePacked}
+        onClearList={handleClearList}
       />
       <Stats items={items} />
     </div>
@@ -93,11 +102,26 @@ function Form({onAddItems}) {
     </form>
   );
 }
-function PackingList({items, onDeleteItem, onTogglePacked}) {
+function PackingList({items, onDeleteItem, onTogglePacked, onClearList}) {
+  const [sortBy, setSortBy] = useState("input");
+  let sortedItems = [...items];
+  switch (sortBy) {
+    case "description":
+      sortedItems = [...items].sort((a, b) =>
+        a.description.localeCompare(b.description)
+      );
+      break;
+    case "packed":
+      sortedItems = [...items].sort((a, b) => a.packed - b.packed);
+      break;
+    default:
+      sortedItems = items;
+  }
+
   return (
     <div className="list">
       <ul>
-        {items.map(item => (
+        {sortedItems.map(item => (
           <Item
             key={item.id}
             item={item}
@@ -106,6 +130,18 @@ function PackingList({items, onDeleteItem, onTogglePacked}) {
           />
         ))}
       </ul>
+
+      <div className="actions">
+        <select
+          value={sortBy}
+          onChange={event => setSortBy(event.target.value)}
+        >
+          <option value="input">Sort by input order</option>
+          <option value="description">Sort by description</option>
+          <option value="packed">Sort by packed status</option>
+        </select>
+        <button onClick={() => onClearList()}>Clear List</button>
+      </div>
     </div>
   );
 }
